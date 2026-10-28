@@ -125,6 +125,10 @@
     .btn-secondary {
       background: var(--card); border: 1px solid var(--border); color: var(--text);
     }
+    .controls button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
     /* Result */
     .result-box {
@@ -172,8 +176,8 @@
         </div>
       </div>
       <div class="controls">
-        <button class="btn-unknow" onclick="answerFlash(false)">还不熟</button>
-        <button class="btn-know" onclick="answerFlash(true)">已掌握</button>
+        <button class="btn-unknow" id="btn-unknow" onclick="answerFlash(false)">还不熟</button>
+        <button class="btn-know" id="btn-know" onclick="answerFlash(true)">已掌握</button>
       </div>
     </div>
 
@@ -211,6 +215,7 @@
     let correctCount = 0;
     let mode = 'flash'; // 'flash' or 'mc'
     let levelProgress = {}; // { 0: {stars: 2, best: 85}, ... }
+    let isAnswering = false;
 
     // ---------- Init ----------
     function init() {
@@ -271,6 +276,7 @@
       }
       currentIndex = 0;
       correctCount = 0;
+      isAnswering = false;
 
       showScreen('practice');
       nextQuestion();
@@ -281,6 +287,11 @@
         finishLevel();
         return;
       }
+
+      isAnswering = false;
+      // Re-enable buttons
+      document.getElementById('btn-unknow').disabled = false;
+      document.getElementById('btn-know').disabled = false;
 
       // Alternate modes: roughly 60% flash, 40% MC
       mode = Math.random() < 0.6 ? 'flash' : 'mc';
@@ -355,12 +366,30 @@
     }
 
     function answerFlash(known) {
+      if (isAnswering) return;
+      isAnswering = true;
+
+      // Disable buttons to prevent double tap
+      document.getElementById('btn-unknow').disabled = true;
+      document.getElementById('btn-know').disabled = true;
+
       if (known) correctCount++;
-      currentIndex++;
-      nextQuestion();
+
+      const card = document.getElementById('card');
+      // If not flipped yet, flip to show meaning
+      if (!card.classList.contains('flipped')) {
+        card.classList.add('flipped');
+      }
+
+      // Wait 1.1 seconds so user can see the translation, then next
+      setTimeout(() => {
+        currentIndex++;
+        nextQuestion();
+      }, 1100);
     }
 
     function flipCard() {
+      if (isAnswering) return; // prevent flipping while waiting
       document.getElementById('card').classList.toggle('flipped');
     }
 

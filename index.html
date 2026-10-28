@@ -322,6 +322,9 @@
           box.appendChild(btn);
         });
       }
+
+      // Auto play pronunciation
+      setTimeout(() => speakWord(), 300);
     }
 
     function generateOptions(correctWord) {
@@ -397,6 +400,7 @@
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
       const w = currentWords[currentIndex];
+      if (!w) return;
       const u = new SpeechSynthesisUtterance(w.en);
       u.lang = 'en-US';
       u.rate = 0.85;
